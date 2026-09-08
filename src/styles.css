@@ -173,7 +173,7 @@ button { font-family: inherit; }
 .loading-name { margin: 10px 0 2px; font-weight: 800; font-size: 18px; }
 .loading-sub { margin: 0 0 14px; font-size: 12px; opacity: 0.6; }
 .loading-bar { width: 220px; height: 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.1); overflow: hidden; margin: 0 auto; }
-.loading-fill { height: 100%; background: var(--accent); transition: width 0.2s ease; }
+.loading-fill { height: 100%; background: var(--accent); transition: transform 0.2s ease; transform-origin: left; }
 
 /* ---------- info panel ---------- */
 .panel-wrap {
@@ -340,64 +340,197 @@ button { font-family: inherit; }
   .exhibit-toolbar:not(.exhibit-toolbar-focused) { bottom: 210px; left: auto; right: 14px; transform: none; width: 150px; padding: 6px; flex-direction: column; }
 }
 
-/* Full-screen circuit with compact controls. */
+/* Circuit interface: dark instruments, light reading surface, orange actions. */
+:root {
+  --font: 'Manrope Variable', sans-serif;
+  --ink: #252925;
+  --paper: #f7f8f4;
+  --glass: #252b28;
+  --glass-fg: #f3f5ef;
+  --muted: #61675f;
+  --accent: #b83e23;
+  --focus: #edaf65;
+  --shadow: 0 12px 36px #16231c24;
+}
+::selection { background: #f3caa7; color: #252925; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button:disabled { opacity: .35; cursor: default; }
+button:active:not(:disabled) { transform: translateY(1px); }
 .game-experience { height: 100dvh; }
 .game-experience > .game-pane { width: 100%; height: 100%; }
 .game-pane { min-width: 0; min-height: 0; position: relative; overflow: hidden; }
 .game-pane .hud, .game-pane .loading { position: absolute; }
-.game-pane .topbar { padding: 12px; }
-.game-pane .identity b { font-size: 12px; }
-.game-pane .identity-role { font-size: 10px; }
-.game-pane .topbar-right { gap: 4px; }
-.game-pane .icon-btn { width: 32px; height: 32px; }
-.game-pane .driving-controls { top: 66px; left: 12px; padding: 6px; gap: 4px; max-width: 175px; font-size: 12px; }
-.game-pane .driving-controls > span { display: none; }
-.game-pane .driving-controls button { min-height: 36px; padding: 6px 8px; }
-.game-pane .minimap canvas { width: 88px; height: 88px; }
-.game-pane .camctl { top: 165px; }
-.game-pane .camctl-label { display: none; }
-.game-pane .driving-status { right: 12px; bottom: 12px; padding: 10px; }
-.game-pane .driving-status strong { font-size: 26px; }
-.game-pane .driving-help { display: none; }
-.resume-road-hint { position: absolute; bottom: 14px; left: 12px; display: flex; flex-direction: column; gap: 5px; color: #fff4df; background: #18352eee; padding: 10px 12px; border-radius: 8px; font-size: 12px; }
-.resume-road-hint button { border: 0; background: none; color: #abefc4; padding: 4px 0; text-align: left; cursor: pointer; }
+.topbar { padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left)); align-items: center; z-index: 15; }
+.topbar-right { flex-wrap: nowrap; gap: 6px; }
+.menu-btn { min-height: 48px; padding: 8px 14px; border-radius: 12px; box-shadow: none; backdrop-filter: none; }
+.identity b { font-size: 14px; letter-spacing: -.02em; }
+.identity-role { font-size: 11px; margin-top: 3px; opacity: 1; color: #bcc8be; }
+.topbar-progress { padding: 0; background: var(--glass); display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; box-shadow: none; font-variant-numeric: tabular-nums; }
+.icon-btn { width: 44px; height: 44px; background: var(--glass); border-radius: 10px; }
+.icon-btn:hover { background: #414b43; }
+.icon-btn[aria-pressed=true] { background: #d1debd; }
+.btn { border-radius: 8px; min-height: 44px; background: var(--accent); box-shadow: none; }
+.btn-primary { box-shadow: none; }
+.btn-sm { font-size: 13px; padding: 10px 14px; }
+.menu { top: calc(76px + env(safe-area-inset-top)); left: max(20px, env(safe-area-inset-left)); max-height: calc(100dvh - 100px - env(safe-area-inset-top)); overflow-y: auto; background: var(--paper); color: var(--ink); backdrop-filter: none; padding: 14px; }
+.menu-title { font-size: 15px; font-weight: 750; text-transform: none; letter-spacing: 0; opacity: 1; margin: 8px 10px 14px; }
+.menu li button { min-height: 56px; }
+.menu li button:hover { background: #e8ede3; }
+.menu-label { font-size: 14px; font-weight: 650; }
+.menu-label em { color: #61675f; opacity: 1; font-weight: 400; margin-top: 3px; }
+.menu-check { color: #38643d; }
+.menu-plain { display: flex; align-items: center; justify-content: center; gap: 8px; background: #e8ede3; min-height: 44px; }
+.minimap { top: 84px; right: 20px; border-radius: 12px; box-shadow: none; backdrop-filter: none; }
+.minimap canvas { width: 106px; height: 106px; }
+.camctl { top: 212px; right: 20px; box-shadow: none; backdrop-filter: none; }
+.camctl-btn { min-width: 44px; min-height: 44px; }
+.camctl-label { display: none; }
+.camctl-btn.is-on { background: #d1debd; }
+.driving-controls { top: auto; bottom: max(20px, env(safe-area-inset-bottom)); left: max(20px, env(safe-area-inset-left)); max-width: 270px; padding: 8px; gap: 6px; border-radius: 12px; background: var(--glass); }
+.driving-controls button { min-height: 44px; font-size: 13px; }
+.driving-controls button b { color: #d1debd; }
+.driving-controls button[aria-pressed=true] { border-color: #768769; background: #d1debd12; }
+.driving-controls > span { font-size: 11px; padding: 2px 4px; }
+.driving-status { top: auto; left: auto; bottom: max(20px, env(safe-area-inset-bottom)); right: max(20px, env(safe-area-inset-right)); background: var(--glass); border: 0; border-radius: 12px; padding: 14px 18px; }
+.driving-mode { color: #d1debd; letter-spacing: .04em; }
+.driving-help { display: none; }
+.resume-road-hint { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; color: var(--glass-fg); background: var(--glass); padding: 6px 12px; border-radius: 12px; font-size: 13px; }
+.resume-road-hint button { min-height: 44px; border: 0; background: transparent; color: #d1debd; cursor: pointer; font-weight: 650; }
 .resume-road-hint kbd { margin-left: 8px; }
-.career-tour-start { position: absolute; left: 24px; right: 24px; bottom: 32px; max-width: 360px; padding: 24px; background: #173d32f5; color: #f7f5ee; border-radius: 12px; }
-.career-tour-start > p { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: #b5d8bc; margin: 0; }
-.career-tour-start h2 { font-size: 32px; line-height: 1.1; letter-spacing: -.03em; margin: 12px 0; }
-.career-tour-start > span { display: block; font-size: 14px; line-height: 1.5; margin-bottom: 18px; }
-.career-tour-start button { display: block; width: 100%; min-height: 44px; border: 0; border-radius: 6px; background: #d5edb8; color: #193b2e; font-size: 15px; font-weight: 700; cursor: pointer; }
-.career-tour-start .tour-manual { background: transparent; color: #e3eadb; font-size: 12px; margin-top: 6px; }
-@media (max-width: 800px) {
-  .game-pane { border-top: 3px solid #254e3b; }
-  .game-pane .topbar { padding: 6px; }
-  .game-pane .topbar-progress, .game-pane .minimap, .game-pane .camctl, .game-pane .identity-role, .game-pane .resume-road-hint { display: none; }
-  .game-pane .driving-controls { top: 48px; left: 6px; max-width: 155px; }
-  .game-pane .driving-controls button { min-height: 32px; }
-  .career-tour-start { inset: auto 10px 10px; max-width: none; padding: 12px; }
-  .career-tour-start h2 { font-size: 19px; margin: 6px 0; }
-  .career-tour-start h2 br { display: none; }
-  .career-tour-start > p, .career-tour-start > span { display: none; }
-  .career-tour-start button { min-height: 38px; }
-  .game-pane .dpad { transform: scale(.65); transform-origin: bottom left; bottom: 8px; left: 8px; }
-  .game-pane .touch-action { width: 44px; height: 44px; bottom: 12px; right: 8px; font-size: 15px; }
-  .game-pane .touch-drift { right: 60px; }
-  .game-pane .touch-reset { display: none; }
-  .game-pane .driving-status { top: 48px; bottom: auto; right: 8px; left: auto; }
+.career-tour-start { position: absolute; left: 28px; bottom: 28px; width: min(410px, calc(100% - 56px)); padding: 28px; background: var(--paper); color: var(--ink); border-radius: 16px; box-shadow: var(--shadow); }
+.career-tour-start h2 { margin: 0 0 16px; font-size: clamp(28px, 3vw, 38px); line-height: 1.15; letter-spacing: -.04em; font-weight: 750; }
+.career-tour-start > span { display: block; font-size: 15px; line-height: 1.65; color: #61675f; margin-bottom: 24px; }
+.career-tour-start button { width: 100%; min-height: 48px; padding: 10px 14px; border: 0; border-radius: 8px; background: var(--accent); color: white; font-size: 14px; font-weight: 700; cursor: pointer; }
+.career-tour-start .tour-manual { background: transparent; color: var(--ink); margin-top: 6px; }
+/* Card face is projected onto a physical, trackside 3D display. */
+.resume-reader { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--paper); color: var(--ink); border-radius: 12px; overflow: hidden; pointer-events: auto; }
+.reader-toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 26px; background: #e9ede5; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.reader-position { margin-left: auto; font-size: 12px; color: #61675f; font-weight: 500; font-variant-numeric: tabular-nums; }
+.reader-toolbar button, .reader-paging button { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--ink); cursor: pointer; border-radius: 8px; }
+.reader-toolbar button:hover, .reader-paging button:hover:not(:disabled) { background: #dbe2d4; }
+.reader-scroll { padding: 26px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #aab3a4 transparent; }
+.reader-scroll h2 { margin: 0; font-size: 29px; line-height: 1.2; font-weight: 750; letter-spacing: -.035em; text-wrap: balance; }
+.reader-scroll h2:focus { outline: none; }
+.reader-detail { margin: 12px 0 0; font-size: 15px; font-weight: 650; color: #454e40; }
+.reader-period { font-size: 12px; margin: 9px 0 0; color: #61675f; }
+.reader-copy { margin-top: 24px; }
+.reader-copy p { font-size: 15px; line-height: 1.75; margin: 0 0 18px; }
+.reader-copy p:last-child { margin-bottom: 0; }
+.reader-copy-experience p { display: flex; gap: 14px; }
+.reader-point { font-size: 12px; color: #65735b; padding-top: 3px; font-variant-numeric: tabular-nums; }
+.reader-location { display: flex; align-items: center; gap: 8px; margin-top: 24px; padding-top: 18px; border-top: 1px solid #dce2d6; color: #61675f; font-size: 12px; }
+.reader-location svg { flex-shrink: 0; }
+.reader-skills { margin: 26px 0 0; }
+.reader-skills > div + div { margin-top: 24px; }
+.reader-skills dt { font-size: 13px; font-weight: 750; margin-bottom: 10px; }
+.reader-skills dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.reader-skills dd span { font-size: 13px; background: #e8ede2; color: #414c38; padding: 6px 9px; border-radius: 5px; }
+.reader-projects { margin-top: 26px; }
+.reader-projects article + article { margin-top: 24px; padding-top: 24px; border-top: 1px solid #dce2d6; }
+.reader-projects h3 { font-size: 18px; letter-spacing: -.02em; margin: 0; }
+.reader-projects p { font-size: 14px; line-height: 1.7; margin: 10px 0; }
+.reader-stack { color: #61675f; font-size: 12px; line-height: 1.7; }
+.reader-outcome { display: flex; align-items: baseline; gap: 7px; color: #3c6138; }
+.reader-outcome svg { flex-shrink: 0; }
+.reader-projects a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: #a23720; text-decoration: underline; text-underline-offset: 4px; font-size: 13px; font-weight: 700; }
+.reader-contact { margin-top: 20px; }
+.reader-contact > a { display: flex; align-items: center; gap: 13px; padding: 16px 0; color: var(--ink); text-decoration: none; }
+.reader-contact > a > svg:last-child { margin-left: auto; }
+.reader-contact span { font-size: 12px; color: #61675f; min-width: 0; }
+.reader-contact strong { display: block; color: var(--ink); font-size: 14px; margin-top: 4px; overflow-wrap: anywhere; }
+.reader-contact > p { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #61675f; }
+.reader-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-top: 1px solid #dce2d6; flex-shrink: 0; }
+.reader-paging { display: flex; gap: 4px; }
+.reader-continue { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; border: 0; border-radius: 8px; padding: 10px 16px; background: var(--accent); color: white; font: 650 13px var(--font); cursor: pointer; }
+.reader-continue:hover, .career-tour-start > button:first-of-type:hover { background: #9e341c; }
+.dpad button { display: grid; place-items: center; box-shadow: none; background: var(--glass); border-radius: 12px; }
+.touch-action { display: grid; place-items: center; background: var(--glass); opacity: 1; box-shadow: none; border-radius: 12px; font-size: 14px; }
+.touch-action:disabled { opacity: .4; }
+.touch-action-hot { background: var(--accent); }
+.touch-reset { top: auto; left: auto; right: 24px; bottom: 132px; width: 76px; }
+@media (pointer: coarse) {
+  .driving-controls { top: 84px; bottom: auto; left: 20px; max-width: 200px; }
+  .driving-controls > span, .driving-controls kbd, .resume-road-hint kbd { display: none; }
+  .driving-status { right: 20px; left: auto; top: 272px; bottom: auto; padding: 10px; }
+  .dpad { bottom: max(20px, env(safe-area-inset-bottom)); }
+  .touch-action { bottom: max(38px, env(safe-area-inset-bottom)); }
+  .touch-reset { bottom: calc(128px + env(safe-area-inset-bottom)); }
+  .resume-road-hint { bottom: calc(208px + env(safe-area-inset-bottom)); width: max-content; max-width: calc(100% - 32px); }
 }
-
-/* Warm motorsport trim: charcoal, cream, burnt orange and amber. */
-:root { --glass: rgba(45, 32, 27, .92); --glass-fg: #fff0d6; --accent: #c74326; --sand: #efb351; --focus: #ffd17a; }
-.game-pane .menu-btn, .game-pane .topbar-progress, .game-pane .minimap, .game-pane .camctl { border: 1px solid #ad795244; box-shadow: 0 4px 16px #28160e26; border-radius: 8px; }
-.game-pane .menu-btn { border-left: 4px solid #e76c35; }
-.game-pane .identity b { letter-spacing: .06em; text-transform: uppercase; font-style: italic; }
-.game-pane .btn { background: #bd3d24; color: #fff4e3; border-radius: 6px; border-bottom: 3px solid #82301f; }
-.game-pane .driving-controls, .game-pane .driving-status, .resume-road-hint { background: #30231eee; color: #fff0d6; border-radius: 8px; border: 1px solid #a37754; }
-.game-pane .driving-controls button[aria-pressed="true"] { border-color: #e9b361; background: #e9b36118; }
-.game-pane .driving-controls button b, .game-pane .driving-mode, .resume-road-hint button { color: #f7c77d; }
-.game-pane .driving-status { border-bottom: 4px solid #d96432; }
-.game-pane .driving-status strong { font-style: italic; }
-.career-tour-start { background: #30231ef5; border-top: 5px solid #d65a2d; border-radius: 8px; }
-.career-tour-start > p { color: #f0bf83; }
-.career-tour-start button { background: #efb351; color: #322219; }
-.career-tour-start .tour-manual { background: transparent; color: #f2dfc4; }
+@media (max-width: 700px) {
+  .topbar { padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left)); gap: 8px; }
+  .topbar-left { gap: 6px; }
+  .topbar-progress { display: none; }
+  .menu-btn { padding: 8px 10px; gap: 8px; }
+  .identity b { font-size: 12px; }
+  .identity-role { font-size: 10px; max-width: none; }
+  .topbar-right { gap: 4px; }
+  .topbar-right .btn { padding: 10px; }
+  .topbar-right .btn span { display: none; }
+  .topbar-right .btn::after { content: ''; }
+  .menu { top: calc(68px + env(safe-area-inset-top)); left: 12px; width: calc(100% - 24px); max-height: calc(100dvh - 88px - env(safe-area-inset-top)); }
+  .menu li button { min-height: 54px; }
+  .minimap { top: calc(76px + env(safe-area-inset-top)); right: 12px; padding: 5px; }
+  .minimap canvas { width: 74px; height: 74px; }
+  .camctl { top: calc(166px + env(safe-area-inset-top)); right: 12px; gap: 0; padding: 3px; }
+  .camctl-btn { padding: 6px; }
+  .driving-controls { top: calc(76px + env(safe-area-inset-top)); bottom: auto; left: 12px; max-width: 164px; padding: 6px; }
+  .driving-controls button { gap: 7px; padding: 7px; font-size: 12px; }
+  .driving-controls > span, .driving-controls kbd { display: none; }
+  .driving-status { top: calc(222px + env(safe-area-inset-top)); right: 12px; left: auto; bottom: auto; padding: 8px 10px; }
+  .driving-status strong { font-size: 24px; }
+  .driving-mode { font-size: 10px; }
+  .career-tour-start { left: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: calc(100% - 24px); padding: 24px; }
+  .career-tour-start h2 { font-size: 30px; }
+  .career-tour-start > span { font-size: 14px; margin-bottom: 18px; }
+  .reader-toolbar { padding: 6px 10px 6px 22px; }
+  .reader-scroll { padding: 22px; }
+  .reader-scroll h2 { font-size: 26px; }
+  .reader-copy p, .reader-projects p { font-size: 16px; line-height: 1.65; }
+  .reader-footer { padding: 10px 14px max(12px, env(safe-area-inset-bottom)); }
+  .reader-location { font-size: 12px; }
+  .dpad { left: 12px; width: 148px; height: 148px; }
+  .dpad button { width: 48px; height: 48px; }
+  .dpad-up, .dpad-down { left: 50px; }
+  .dpad-left, .dpad-right { top: 50px; }
+  .touch-action { right: 12px; width: 60px; height: 60px; }
+  .touch-drift { right: 80px; }
+  .touch-reset { right: 12px; bottom: calc(108px + env(safe-area-inset-bottom)); width: 60px; height: 44px; }
+  .resume-road-hint { bottom: calc(184px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 370px) {
+  .identity-role { display: none; }
+  .identity b { max-width: 58px; white-space: normal; }
+  .topbar { padding-left: 8px; padding-right: 8px; }
+  .topbar-right .btn { padding: 10px 8px; }
+  .reader-scroll { padding: 20px; }
+}
+@media (max-height: 550px) and (min-width: 560px) {
+  .reader-toolbar { padding: 2px 8px 2px 18px; }
+  .reader-scroll { padding: 18px; }
+  .reader-scroll h2 { font-size: 24px; }
+  .reader-footer { padding: 6px 12px; }
+  .career-tour-start { width: 380px; left: 20px; bottom: 12px; padding: 20px; max-height: calc(100dvh - 88px); overflow: auto; }
+  .career-tour-start h2 { font-size: 26px; }
+  .career-tour-start h2 br { display: none; }
+  .career-tour-start > span { margin-bottom: 12px; }
+  .driving-controls { top: 76px; bottom: auto; left: 12px; }
+  .driving-status { top: 76px; right: 110px; bottom: auto; }
+  .minimap { top: 76px; right: 12px; }
+  .minimap canvas { width: 72px; height: 72px; }
+  .camctl { top: 172px; right: 12px; }
+  .dpad { width: 148px; height: 148px; bottom: 12px; left: 12px; }
+  .dpad button { width: 48px; height: 48px; }
+  .dpad-up, .dpad-down { left: 50px; }
+  .dpad-left, .dpad-right { top: 50px; }
+  .touch-action { bottom: 12px; width: 54px; height: 54px; right: 12px; }
+  .touch-drift { right: 74px; }
+  .touch-reset { bottom: 76px; right: 12px; height: 44px; }
+  .resume-road-hint { bottom: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+.reader-scroll { flex: 1; min-height: 0; }
+.reader-toolbar .reader-focus { width: auto; padding: 0 8px; font: 700 12px var(--font); color: #a23720; }
+.world-card-face { width: 100%; height: 100%; }

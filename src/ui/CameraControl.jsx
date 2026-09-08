@@ -1,9 +1,9 @@
+import { VideoCamera, Cube } from '@phosphor-icons/react'
 import { useStore } from '../state/store.js'
 
 const MODES = [
-  ['follow', 'Follow', '🎥'],
-  ['top', 'Top', '⬇'],
-  ['side', 'Side', '↔'],
+  ['follow', 'Follow', VideoCamera],
+  ['angled', 'Angled', Cube],
 ]
 
 export default function CameraControl() {
@@ -12,16 +12,17 @@ export default function CameraControl() {
 
   return (
     <div className="camctl" role="group" aria-label="Camera view">
-      {MODES.map(([m, label, ico]) => (
+      {MODES.map(([m, label, Icon]) => (
         <button
           key={m}
           type="button"
           className={'camctl-btn' + (mode === m ? ' is-on' : '')}
           aria-pressed={mode === m}
+          aria-label={`${label} camera`}
           onClick={() => setCam(m)}
           title={`${label} view — press C to cycle`}
         >
-          <span aria-hidden>{ico}</span>
+          <Icon size={18} aria-hidden="true" />
           <span className="camctl-label">{label}</span>
         </button>
       ))}

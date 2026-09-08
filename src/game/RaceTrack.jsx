@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { buildTrackPhysics, trackPhysics, TRACK_SCALE } from './trackPhysics.js'
-import { zoneLayout } from './layout.js'
+import { exhibitStops } from './exhibitStops.js'
 import * as THREE from 'three'
 import CourseMarks from './CourseMarks.jsx'
 import trackUrl from '../../map/low_poly_race_track.glb?url'
@@ -27,7 +27,7 @@ export default function RaceTrack() {
     clone.traverse(object => {
       if (!/^forest/i.test(object.name)) return
       const center = new THREE.Box3().setFromObject(object).getCenter(new THREE.Vector3())
-      if (zoneLayout.some(zone => Math.hypot(center.x - zone.pos[0], center.z - zone.pos[2]) < 2.2)) object.visible = false
+      if (exhibitStops.some(zone => Math.hypot(center.x - zone.pos[0], center.z - zone.pos[2]) < 2.2)) object.visible = false
     })
     return clone
   }, [scene])

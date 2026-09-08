@@ -29,7 +29,7 @@ export function useKeyboard() {
       if (e.target?.closest?.('.exhibit-cards, .resume-reader, input, textarea, select, [contenteditable="true"]')) return
       if (['Space', 'Enter'].includes(e.code) && e.target?.closest?.('button, a')) return
       const g = useStore.getState()
-      const driving = g.phase === 'playing' && !g.panel && !g.menuOpen && !g.plain
+      const driving = g.phase === 'playing' && !g.panel && !g.menuOpen && !g.plain && !g.exhibitFocus
       if (MAP[e.code] && driving) {
         e.preventDefault()
         if (g.exhibitFocus) g.focusExhibit(null)

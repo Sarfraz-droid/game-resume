@@ -20,7 +20,7 @@ npm run preview
 ## Edit your content
 
 **`src/data/resume.js`** contains the résumé transcribed from `Resume.pdf`.
-`src/data/exhibits.js` arranges it into pages for the in-world displays. The
+`src/data/tourCards.js` arranges it into nine stops for the in-world displays. The
 original PDF is bundled into the build and linked from Download Résumé.
 
 ## Where things live
@@ -41,8 +41,10 @@ original PDF is bundled into the build and linked from Download Résumé.
 | Vehicle + follow camera | `src/game/Car.jsx` |
 | Fixed-step handling, drift, gravity, collisions | `src/game/vehiclePhysics.js` |
 | Imported track surface sampling | `src/game/trackPhysics.js` |
-| Road arrows, jump lights, braking signs | `src/game/CourseMarks.jsx` |
-| Zone markers / interaction rings | `src/game/ZoneMarker.jsx` |
+| Road arrows and jump lights | `src/game/CourseMarks.jsx` |
+| Ground-level résumé checkpoints | `src/game/ZoneMarker.jsx` |
+| Animated 3D cards and viewport framing | `src/game/WorldResumeCard.jsx`, `src/game/worldCard.js` |
+| Card typography, content and links | `src/ui/ResumeCard.jsx` |
 | HUD, menu, panels, minimap | `src/ui/*` |
 | Plain-text fallback résumé | `src/fallback/Fallback2D.jsx` |
 
@@ -75,6 +77,10 @@ returns control to you. Menus and panels pause the pilot with the car.
 corner braking (on by default). Assist does not add throttle and leaves reverse,
 intentional drifting, and the jump run-up under your control.
 
+**C / Camera** switches between Follow and Angled, a three-quarter view between
+side-on and overhead. Angled keeps a fixed world orientation and follows the
+car’s position without rotating when it steers.
+
 ## Deploy
 
 `dist/` is a static site — GitHub Pages, Netlify, Vercel, etc. For Pages under a
@@ -84,11 +90,16 @@ repo subpath, set `base: '/<repo>/'` in `vite.config.js`.
 
 The game fills the viewport. Nine curated cards are evenly spaced by distance
 along the circuit. Related facts are merged; only experience and projects need
-an extra stop. Small markers and the minimap show the updated chapter locations.
-The profile card stays on display in the 3D world, including after Continue or
-leaving its stop. Other cards appear only at their own stops. Autopilot waits at each card until Continue or
-Escape is pressed; manual driving stays under the player's control. Dismissed
-cards do not automatically reappear on later laps, but E can reopen a nearby card.
+an extra stop. Ground-level checkpoints and the minimap show the updated chapter locations.
+Cards rise into view beside their exhibits on approach and shrink away on departure.
+A wider departure radius prevents flicker at the edge of a stop. They remain in
+3D, with perspective and physical depth, rather than opening a screen overlay.
+Manual driving and touch controls stay active while cards appear. Choose Read
+closer (or the touch read button) for a camera view fitted to the display. The
+guided tour frames each display and waits until Continue or Escape is pressed. Nearby cards always stay visible as world previews. Closing a close-up returns
+to driving; the preview retracts when you leave. Every return visit shows the card
+again, including later guided laps. Small ground-level checkpoints replace banners; approaching or tapping one
+opens its résumé popup.
 The PDF and plain-text résumé retain the complete source details and project links.
 
 ## Connect pad

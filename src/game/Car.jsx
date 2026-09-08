@@ -1,3 +1,4 @@
+import { selectVisibleStop, worldCardFrame } from './worldCard.js'
 import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
@@ -61,14 +62,14 @@ export default function Car() {
     lean: 0, pitch: 0, steer: 0, wheel: 0, camReady: 0, idle: 0, orbit: 0,
   }).current
 
-  useFrame((_, dRaw) => {
+  useFrame(({ size }, dRaw) => {
     const dt = Math.min(dRaw, 0.05)
     const t = performance.now() / 1000
     const st = useStore.getState()
     const reduced = selectReducedMotion(st)
 
     // ---------- intro orbit on the start screen ----------
-    if (st.phase !== 'playing') {
+    if (st.phase !== 'playing' && !st.exhibitFocus) {
       s.orbit += dt * (reduced ? 0 : 0.12)
       const r = 84
       camera.position.set(Math.cos(s.orbit) * r, 52, Math.sin(s.orbit) * r)
@@ -136,7 +137,7 @@ export default function Car() {
     updateEngine(frozen || reading ? 0 : speedN)
 
     // ---------- nearest zone ----------
-    const stop = nearestExhibitStop(s.x, s.z, s.heading)
+    const stop = nearestExhibitStop(s.x, s.z, s.heading, st.currentStop)
     carState.nearDist = stop ? Math.hypot(s.x - stop.road[0], s.z - stop.road[1]) : Infinity
     st.setCurrentStop(stop?.id || null, stop?.zone.key || null)
     if (stop && !frozen) st.markVisited(stop.zone.key)
@@ -151,7 +152,13 @@ export default function Car() {
     const orbiting = !reduced && !frozen && !reading && s.idle > 3
     s.orbit = orbiting ? s.orbit + dt * 0.15 : damp(s.orbit, 0, 3, dt)
 
-    if (frozen && st.panelSource === 'world') {
+    const cardStop = selectVisibleStop(st)
+    if (cardStop && (st.exhibitFocus || reading)) {
+      const frame = worldCardFrame(cardStop, size.width, size.height)
+      const [nx, nz] = frame.normal
+      _look.set(...frame.center)
+      _goal.set(frame.center[0] + nx * frame.distance + nz * .65, frame.center[1] + .65, frame.center[2] + nz * frame.distance - nx * .65)
+    } else if (frozen && st.panelSource === 'world') {
       // lock-on: frame the vehicle against the zone it opened
       const zn = zoneLayout.find((z) => z.key === st.panel)
       if (zn) {
@@ -164,20 +171,23 @@ export default function Car() {
       // opened from the menu — quiet 3/4 framing of the vehicle
       _goal.set(s.x - 7, CAM_HEIGHT + 1.5, s.z + 8)
       _look.set(s.x, 1.2, s.z)
-    } else if (st.camMode === 'top') {
-      // bird's-eye: straight down on the car, world stays axis-aligned
-      _goal.set(s.x, 46, s.z + 0.01)
-      _look.set(s.x, 0, s.z)
-    } else if (st.camMode === 'side') {
-      // side elevation: camera on the car's right, looking across it
-      const rx = Math.cos(s.heading)
-      const rz = -Math.sin(s.heading)
-      _goal.set(s.x + rx * 13, 5.6, s.z + rz * 13)
+    } else if (st.camMode === 'angled') {
+      // Fixed world-space three-quarter direction; only the tracked position
+      // moves with the car. Steering never orbits this camera.
+      const roomy = size.width < 700 ? 1.2 : 1
+      _goal.set(s.x + 9.1 * roomy, 1.5 + (17 * roomy - 1.5) * .7, s.z + 4.9 * roomy)
       _look.set(s.x, 1.5, s.z)
+      if (cardStop && size.width < 700) {
+        const shiftX = (cardStop.pos[0] - s.x) * .7
+        const shiftZ = (cardStop.pos[2] - s.z) * .7
+        _look.x += shiftX; _goal.x += shiftX
+        _look.z += shiftZ; _goal.z += shiftZ
+      }
     } else {
       const approach = clamp((14 - carState.nearDist) / 10, 0, 1)
-      const back = CAM_BACK + (reduced ? 0 : speedN * 3.2) - approach * 2.4
-      const high = CAM_HEIGHT + approach * 0.6
+      const mobilePreview = cardStop && size.width < 700
+      const back = CAM_BACK + (reduced ? 0 : speedN * 3.2) - approach * 2.4 + (mobilePreview ? 5 : 0)
+      const high = CAM_HEIGHT + approach * 0.6 + (mobilePreview ? 1 : 0)
       // behind-the-car vector, rotated by the idle-orbit angle
       const bx = -Math.sin(s.heading)
       const bz = -Math.cos(s.heading)
@@ -195,9 +205,14 @@ export default function Car() {
       _look
         .set(s.x, 1.7, s.z)
         .addScaledVector(_fwd, 2.4 + speedN * 3) // look-ahead
+      if (mobilePreview) {
+        _look.x += (cardStop.pos[0] - s.x) * .85
+        _look.z += (cardStop.pos[2] - s.z) * .85
+        _look.y += .5
+      }
     }
 
-    if (!st.exhibitFocus) {
+    if (!(cardStop && reading) && !st.exhibitFocus) {
       _goal.y += s.y - TRACK_SURFACE_Y
       _look.y += s.y - TRACK_SURFACE_Y
     }
@@ -221,7 +236,11 @@ export default function Car() {
     camera.position.x = enteringPlay ? _goal.x : damp(camera.position.x, _goal.x, lambda, dt)
     camera.position.y = enteringPlay ? _goal.y : damp(camera.position.y, _goal.y, lambda, dt)
     camera.position.z = enteringPlay ? _goal.z : damp(camera.position.z, _goal.z, lambda, dt)
-    camera.lookAt(_look)
+    if (st.camMode === 'angled' && !frozen && !reading) {
+      // Translate the look target with the damped camera too, keeping its
+      // orientation constant even while catching up after a bend.
+      camera.lookAt(camera.position.x - (_goal.x - _look.x), camera.position.y - (_goal.y - _look.y), camera.position.z - (_goal.z - _look.z))
+    } else camera.lookAt(_look)
 
     const fovGoal = reduced || scripted ? CAM_FOV : CAM_FOV + speedN * 5
     camera.fov = damp(camera.fov, fovGoal, 5, dt)

@@ -14,7 +14,7 @@ export default function LoadingScreen() {
         <p className="loading-name">{RESUME.profile.name}</p>
         <p className="loading-sub">building the island…</p>
         <div className="loading-bar">
-          <div className="loading-fill" style={{ width: p + '%' }} />
+          <div className="loading-fill" style={{ transform: `scaleX(${p / 100})` }} />
         </div>
       </div>
     </div>

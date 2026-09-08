@@ -27,13 +27,14 @@ export const useStore = create((set, get) => ({
   selectResumeSection: (key, follow = false) => set(s => ({ resumeSection: key, resumeFollowing: follow, exhibitFocus: null, panel: null, menuOpen: false, visited: { ...s.visited, [key]: true } })),
   readStops: {},
   currentStop: null,
-  setCurrentStop: (id, key) => { if (get().currentStop !== id) set({ currentStop: id, current: key, cardsZone: key, cardsDismissed: !!get().readStops[id] }) },
+  setCurrentStop: (id, key) => { if (get().currentStop !== id) set({ currentStop: id, current: key, cardsZone: key, cardsDismissed: false }) },
   cardsZone: null,
   cardsDismissed: false,
-  dismissCards: () => set(s => ({ cardsDismissed: true, readStops: s.currentStop ? { ...s.readStops, [s.currentStop]: true } : s.readStops })),
+  dismissCards: () => set(s => ({ cardsDismissed: true, exhibitFocus: null, readStops: s.currentStop ? { ...s.readStops, [s.currentStop]: true } : s.readStops })),
   exhibitFocus: null,
   exhibitPage: {},
-  focusExhibit: (key) => { if (key) set({ cardsZone: key, cardsDismissed: false, menuOpen: false }) },
+  focusExhibit: (key) => set({ exhibitFocus: key, cardsZone: key, cardsDismissed: !key, menuOpen: false }),
+  browseStop: (key, page) => set(s => ({ exhibitFocus: key, cardsZone: key, cardsDismissed: false, menuOpen: false, exhibitPage: { ...s.exhibitPage, [key]: page } })),
   turnExhibitPage: (key, delta, count) => set(s => ({ exhibitPage: { ...s.exhibitPage, [key]: ((s.exhibitPage[key] || 0) + delta + count) % count } })),
   markVisited: (key) => { if (!get().visited[key]) set(s => ({ visited: { ...s.visited, [key]: true } })) },
   autopilot: false,
@@ -41,7 +42,7 @@ export const useStore = create((set, get) => ({
   setAutopilot: (autopilot) => set({ autopilot }),
   toggleAutopilot: () => set(s => ({ autopilot: !s.autopilot })),
   toggleDriveAssist: () => set(s => ({ driveAssist: !s.driveAssist })),
-  camMode: 'follow', // 'follow' | 'top' | 'side'
+  camMode: 'follow', // 'follow' | 'angled'
 
   setPhase: (phase) => set({ phase }),
   ready: () => set((s) => (s.phase === 'loading' ? { phase: 'start' } : {})),
@@ -64,10 +65,10 @@ export const useStore = create((set, get) => ({
   toggleMenu: () => set((s) => ({ menuOpen: !s.menuOpen })),
   setMenu: (menuOpen) => set({ menuOpen }),
 
-  setCam: (camMode) => set({ camMode }),
+  setCam: (camMode) => { if (['follow', 'angled'].includes(camMode)) set({ camMode }) },
   cycleCam: () =>
     set((s) => {
-      const order = ['follow', 'top', 'side']
+      const order = ['follow', 'angled']
       return { camMode: order[(order.indexOf(s.camMode) + 1) % order.length] }
     }),
 
@@ -84,4 +85,4 @@ export const selectReducedMotion = (s) => s.reducedMotionUser ?? prefersReduced
 
 export const selectVisitedCount = (s) => ZONES.filter((z) => s.visited[z.key]).length
 
-export const selectReadingPause = s => s.autopilot && !!s.currentStop && !s.cardsDismissed && !s.menuOpen && !s.plain
+export const selectReadingPause = s => s.autopilot && (!!s.currentStop || !!s.exhibitFocus) && !s.cardsDismissed && !s.plain
