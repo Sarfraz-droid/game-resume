@@ -1,10 +1,13 @@
-import { List, X, SpeakerHigh, SpeakerSlash, Feather, FileText, DownloadSimple } from '@phosphor-icons/react'
+import { useLocalAtmosphere } from '../game/Atmosphere.jsx'
+import { List, X, SpeakerHigh, SpeakerSlash, Feather, Sun, Moon, DownloadSimple } from '@phosphor-icons/react'
 import { useStore, selectReducedMotion, selectVisitedCount } from '../state/store.js'
 import { setSoundEnabled } from '../lib/sound.js'
 import { RESUME } from '../data/resume.js'
 import { ZONES } from '../game/zones.js'
 
 export default function TopBar() {
+  const { night } = useLocalAtmosphere()
+  const isNight = night >= .5
   const menuOpen = useStore(s => s.menuOpen)
   const soundOn = useStore(s => s.soundOn)
   const reduced = useStore(selectReducedMotion)
@@ -17,7 +20,7 @@ export default function TopBar() {
       <a className="btn btn-sm" aria-label="Download résumé" href={RESUME.resumeUrl} download><DownloadSimple size={18} /><span>Résumé</span></a>
       <button className="icon-btn" aria-label="Sound" aria-pressed={soundOn} onClick={() => { useStore.getState().toggleSound(); setSoundEnabled(!soundOn) }}>{soundOn ? <SpeakerHigh size={19} /> : <SpeakerSlash size={19} />}</button>
       <button className="icon-btn" aria-label="Reduced motion" aria-pressed={reduced} onClick={() => useStore.getState().toggleReducedMotion()}><Feather size={19} /></button>
-      <button className="icon-btn" aria-label="Plain-text résumé" onClick={() => useStore.getState().togglePlain()}><FileText size={19} /></button>
+      <button className="icon-btn" aria-label={isNight ? "Switch to day" : "Switch to night"} title={isNight ? "Switch to day" : "Switch to night"} onClick={() => useStore.getState().setTimeOfDay(isNight ? 'day' : 'night')}>{isNight ? <Sun size={19} /> : <Moon size={19} />}</button>
     </div>
   </header>
 }

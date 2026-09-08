@@ -110,3 +110,14 @@ LinkedIn and GitHub links. It rearms after driving off; Escape, Back to the trac
 or driving away closes the links. No message is sent automatically.
 
 The scene uses warm sunset lighting, a peach sky and charcoal/burnt-orange racing trim.
+
+## Local-time atmosphere
+
+Distance fog is present throughout the day and becomes denser at night. The
+visitor’s local clock controls sky, fog, moonlight, stars, reflections, and
+headlight brightness. Dawn transitions from 06:00 to 08:00 and dusk from 17:00
+to 19:00. Time is checked while the page is open and when returning to the tab;
+no location permission or network service is required.
+
+Use the sun/moon button in the top bar to switch lighting manually. Choose
+Scene lighting → Auto in the résumé menu to follow local time again.

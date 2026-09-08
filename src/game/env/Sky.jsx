@@ -1,26 +1,29 @@
-import { useMemo, useRef } from 'react'
+import { useAtmosphere } from '../Atmosphere.jsx'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Sparkles } from '@react-three/drei'
 import * as THREE from 'three'
 import { useStore, selectReducedMotion } from '../../state/store.js'
 
 function Dome() {
+  const { sky } = useAtmosphere()
   const tex = useMemo(() => {
     const c = document.createElement('canvas')
     c.width = 16
     c.height = 256
     const ctx = c.getContext('2d')
     const g = ctx.createLinearGradient(0, 0, 0, 256)
-    g.addColorStop(0.0, '#bba7a0')
-    g.addColorStop(0.45, '#e5c5a7')
-    g.addColorStop(0.75, '#f4d9b2')
-    g.addColorStop(1.0, '#efbd88')
+    g.addColorStop(0.0, sky[0])
+    g.addColorStop(0.45, sky[1])
+    g.addColorStop(0.75, sky[2])
+    g.addColorStop(1.0, sky[3])
     ctx.fillStyle = g
     ctx.fillRect(0, 0, 16, 256)
     const t = new THREE.CanvasTexture(c)
     if ('SRGBColorSpace' in THREE) t.colorSpace = THREE.SRGBColorSpace
     return t
-  }, [])
+  }, [sky])
+  useEffect(() => () => tex.dispose(), [tex])
   return (
     <mesh>
       <sphereGeometry args={[440, 32, 16]} />
@@ -30,6 +33,7 @@ function Dome() {
 }
 
 function Sun() {
+  const { night } = useAtmosphere()
   const glow = useMemo(() => {
     const c = document.createElement('canvas')
     c.width = c.height = 256
@@ -42,14 +46,15 @@ function Sun() {
     ctx.fillRect(0, 0, 256, 256)
     return new THREE.CanvasTexture(c)
   }, [])
+  useEffect(() => () => glow.dispose(), [glow])
   return (
     <group position={[120, 90, -180]}>
-      <sprite scale={[130, 130, 1]}>
-        <spriteMaterial map={glow} transparent depthWrite={false} fog={false} toneMapped={false} />
+      <sprite scale={night > .5 ? [65, 65, 1] : [130, 130, 1]}>
+        <spriteMaterial map={glow} color={night > .5 ? '#a7c6ff' : '#ffffff'} opacity={1 - night * .65} transparent depthWrite={false} fog={false} toneMapped={false} />
       </sprite>
       <mesh>
-        <sphereGeometry args={[14, 24, 24]} />
-        <meshBasicMaterial color="#fff6e0" fog={false} toneMapped={false} />
+        <sphereGeometry args={[night > .5 ? 8 : 14, 24, 24]} />
+        <meshBasicMaterial color={night > .5 ? '#d9e6f7' : '#fff6e0'} fog={false} toneMapped={false} />
       </mesh>
     </group>
   )
@@ -74,6 +79,7 @@ function Mountains() {
 }
 
 function Archipelago() {
+  const { water } = useAtmosphere()
   const islets = useMemo(
     () =>
       Array.from({ length: 18 }, (_, i) => {
@@ -92,7 +98,7 @@ function Archipelago() {
     <group>
       <mesh position={[0, -4.15, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <circleGeometry args={[330, 128]} />
-        <meshStandardMaterial color="#708b86" roughness={0.32} metalness={0.08} />
+        <meshStandardMaterial color={water} roughness={0.32} metalness={0.08} />
       </mesh>
       <mesh position={[0, -4.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[68, 325, 128]} />
@@ -115,6 +121,7 @@ function Archipelago() {
 }
 
 function Clouds() {
+  const { cloud, night } = useAtmosphere()
   const grp = useRef([])
   const data = useMemo(
     () =>
@@ -146,11 +153,29 @@ function Clouds() {
       ].map(([x, y, z, r], k) => (
         <mesh key={k} position={[x, y, z]}>
           <sphereGeometry args={[r, 12, 10]} />
-          <meshStandardMaterial color="#ffffff" roughness={1} emissive="#f2ede2" emissiveIntensity={0.2} fog={false} />
+          <meshStandardMaterial color={cloud} roughness={1} emissive={cloud} emissiveIntensity={.2 * (1 - night)} />
         </mesh>
       ))}
     </group>
   ))
+}
+
+function NightStars() {
+  const { night } = useAtmosphere()
+  const positions = useMemo(() => {
+    const points = new Float32Array(1200 * 3)
+    for (let i = 0; i < 1200; i++) {
+      const angle = i * 2.399963229728653
+      const y = .08 + (i + .5) / 1200 * .9
+      const radial = Math.sqrt(1 - y * y)
+      points.set([Math.cos(angle) * radial * 300, y * 300, Math.sin(angle) * radial * 300], i * 3)
+    }
+    return points
+  }, [])
+  return <points visible={night > .05}>
+    <bufferGeometry><bufferAttribute attach="attributes-position" array={positions} count={positions.length / 3} itemSize={3} /></bufferGeometry>
+    <pointsMaterial color="#dce8ff" size={.55} transparent opacity={night * .8} fog={false} depthWrite={false} toneMapped={false} />
+  </points>
 }
 
 export default function Sky() {
@@ -159,6 +184,7 @@ export default function Sky() {
     <group>
       <Dome />
       <Sun />
+      <NightStars />
       <Archipelago />
       <Mountains />
       <Clouds />

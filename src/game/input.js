@@ -6,7 +6,8 @@ export const input = empty()
 export const touch = empty()
 const held = new Set()
 let resetRequested = false
-export function requestReset() { resetRequested = true }
+export let resetSequence = 0
+export function requestReset() { resetRequested = true; resetSequence++ }
 const MAP = {
   ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
   ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',

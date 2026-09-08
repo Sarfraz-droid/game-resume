@@ -17,6 +17,12 @@ export default function RaceTrack() {
     const clone = scene.clone(true)
     clone.traverse((object) => {
       if (JUNK.test(object.name)) object.visible = false
+      // Widen the terrain without moving the course or changing ground height.
+      // The physics grid below uses this same expanded mesh for solid runoff.
+      if (/^Earth/i.test(object.name)) {
+        object.scale.x *= 1.5
+        object.scale.z *= 1.5
+      }
       if (object.isMesh) {
         object.castShadow = true
         object.receiveShadow = true

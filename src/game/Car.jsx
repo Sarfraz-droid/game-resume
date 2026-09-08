@@ -1,3 +1,4 @@
+import { useAtmosphere } from './Atmosphere.jsx'
 import { selectVisibleStop, worldCardFrame } from './worldCard.js'
 import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
@@ -44,6 +45,7 @@ function Wheel({ position, front, rollRef, steerRef }) {
 }
 
 export default function Car() {
+  const atmosphere = useAtmosphere()
   const camera = useThree((s) => s.camera)
   const car = useRef()
   const shell = useRef()
@@ -118,7 +120,7 @@ export default function Car() {
       ant.current.rotation.x = (reduced ? 0 : Math.sin(t * 7) * 0.12) - clamp(accel * 0.01, -0.3, 0.3)
       ant.current.rotation.z = -s.lean * 1.6
     }
-    const beam = 0.5 + Math.abs(Math.sin(t * 0.6)) * 0.5
+    const beam = .6 + atmosphere.night * 3.4
     if (beamL.current) beamL.current.intensity = beam
     if (beamR.current) beamR.current.intensity = beam
 

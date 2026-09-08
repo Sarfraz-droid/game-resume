@@ -1,3 +1,5 @@
+import RaceClock from './RaceClock.jsx'
+import Atmosphere from './Atmosphere.jsx'
 import { Component, Suspense } from 'react'
 import Lighting from './Lighting.jsx'
 import Sky from './env/Sky.jsx'
@@ -23,8 +25,7 @@ class TrackBoundary extends Component {
 
 export default function Scene() {
   return (
-    <>
-      <fog attach="fog" args={['#e1c4a6', 120, 360]} />
+    <Atmosphere>
       <Lighting />
       <Sky />
       {/* Keep the playable scene visible while the optional 10 MB course loads. */}
@@ -36,9 +37,10 @@ export default function Scene() {
       <Zones />
       <ConnectPad />
       <Car />
+      <RaceClock />
       <DriftPuffs />
       <SkidMarks />
       <Effects />
-    </>
+    </Atmosphere>
   )
 }

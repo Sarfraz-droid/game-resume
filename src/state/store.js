@@ -18,6 +18,8 @@ export const useStore = create((set, get) => ({
   visited: {}, // { [key]: true }
   lastOpen: {}, // { [key]: timestamp } — throttles world auto-open
 
+  timeOfDay: 'auto',
+  setTimeOfDay: (timeOfDay) => { if (['auto', 'day', 'night'].includes(timeOfDay)) set({ timeOfDay }) },
   soundOn: false,
   reducedMotionUser: null, // null = follow OS; true / false = manual override
   plain: false, // show the plain-text résumé instead of the 3D world

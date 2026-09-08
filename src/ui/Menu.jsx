@@ -4,6 +4,7 @@ import { useStore } from '../state/store.js'
 import { ZONES } from '../game/zones.js'
 
 export default function Menu() {
+  const timeOfDay = useStore(s => s.timeOfDay)
   const menuOpen = useStore((s) => s.menuOpen)
   const focusExhibit = useStore((s) => s.focusExhibit)
   const setMenu = useStore((s) => s.setMenu)
@@ -31,6 +32,14 @@ export default function Menu() {
       <button className="menu-plain" onClick={() => { setMenu(false); togglePlain() }}>
         <FileText size={18} /> Open plain-text résumé
       </button>
+      <label className="menu-lighting">
+        Scene lighting
+        <select aria-label="Scene lighting" value={timeOfDay} onChange={event => useStore.getState().setTimeOfDay(event.target.value)}>
+          <option value="auto">Auto · local time</option>
+          <option value="day">Day</option>
+          <option value="night">Night</option>
+        </select>
+      </label>
     </nav>
   )
 }
