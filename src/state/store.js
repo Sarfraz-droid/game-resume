@@ -21,6 +21,26 @@ export const useStore = create((set, get) => ({
   soundOn: false,
   reducedMotionUser: null, // null = follow OS; true / false = manual override
   plain: false, // show the plain-text résumé instead of the 3D world
+  resumeSection: 'profile',
+  resumeFollowing: true,
+  setResumeFollowing: (resumeFollowing) => set({ resumeFollowing }),
+  selectResumeSection: (key, follow = false) => set(s => ({ resumeSection: key, resumeFollowing: follow, exhibitFocus: null, panel: null, menuOpen: false, visited: { ...s.visited, [key]: true } })),
+  readStops: {},
+  currentStop: null,
+  setCurrentStop: (id, key) => { if (get().currentStop !== id) set({ currentStop: id, current: key, cardsZone: key, cardsDismissed: !!get().readStops[id] }) },
+  cardsZone: null,
+  cardsDismissed: false,
+  dismissCards: () => set(s => ({ cardsDismissed: true, readStops: s.currentStop ? { ...s.readStops, [s.currentStop]: true } : s.readStops })),
+  exhibitFocus: null,
+  exhibitPage: {},
+  focusExhibit: (key) => { if (key) set({ cardsZone: key, cardsDismissed: false, menuOpen: false }) },
+  turnExhibitPage: (key, delta, count) => set(s => ({ exhibitPage: { ...s.exhibitPage, [key]: ((s.exhibitPage[key] || 0) + delta + count) % count } })),
+  markVisited: (key) => { if (!get().visited[key]) set(s => ({ visited: { ...s.visited, [key]: true } })) },
+  autopilot: false,
+  driveAssist: true,
+  setAutopilot: (autopilot) => set({ autopilot }),
+  toggleAutopilot: () => set(s => ({ autopilot: !s.autopilot })),
+  toggleDriveAssist: () => set(s => ({ driveAssist: !s.driveAssist })),
   camMode: 'follow', // 'follow' | 'top' | 'side'
 
   setPhase: (phase) => set({ phase }),
@@ -28,7 +48,7 @@ export const useStore = create((set, get) => ({
   start: () => set({ phase: 'playing' }),
 
   setCurrent: (key) => {
-    if (get().current !== key) set({ current: key })
+    if (get().current !== key) set({ current: key, cardsZone: key, cardsDismissed: false })
   },
 
   openPanel: (key, source = 'world') =>
@@ -63,3 +83,5 @@ export const useStore = create((set, get) => ({
 export const selectReducedMotion = (s) => s.reducedMotionUser ?? prefersReduced
 
 export const selectVisitedCount = (s) => ZONES.filter((z) => s.visited[z.key]).length
+
+export const selectReadingPause = s => s.autopilot && !!s.currentStop && !s.cardsDismissed && !s.menuOpen && !s.plain

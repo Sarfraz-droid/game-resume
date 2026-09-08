@@ -1,10 +1,9 @@
 import { useStore, selectReducedMotion, selectVisitedCount } from '../state/store.js'
-import { RESUME } from '../data/resume.js'
 import { setSoundEnabled } from '../lib/sound.js'
+import { RESUME } from '../data/resume.js'
 import { ZONES } from '../game/zones.js'
 
 export default function TopBar() {
-  const { name, role } = RESUME.profile
   const menuOpen = useStore((s) => s.menuOpen)
   const toggleMenu = useStore((s) => s.toggleMenu)
   const soundOn = useStore((s) => s.soundOn)
@@ -31,8 +30,8 @@ export default function TopBar() {
         >
           <span className="menu-ico">{menuOpen ? '✕' : '☰'}</span>
           <span className="identity">
-            <b>{name}</b>
-            <span className="identity-role">{role}</span>
+            <b>Career circuit</b>
+            <span className="identity-role">Explore the résumé</span>
           </span>
         </button>
         <span className="topbar-progress" title="Zones explored">
@@ -41,15 +40,7 @@ export default function TopBar() {
       </div>
 
       <div className="topbar-right">
-        {RESUME.resumeUrl ? (
-          <a className="btn btn-sm btn-primary" href={RESUME.resumeUrl} target="_blank" rel="noopener noreferrer" download>
-            ⬇ Résumé
-          </a>
-        ) : (
-          <button className="btn btn-sm btn-primary" onClick={() => togglePlain()} title="Add resumeUrl in src/data/resume.js for a real download">
-            ⬇ Résumé
-          </button>
-        )}
+        <a className="btn btn-sm" href={RESUME.resumeUrl} download>Résumé ↓</a>
         <button className="icon-btn" aria-pressed={soundOn} onClick={onSound} title="Sound">
           {soundOn ? '🔊' : '🔈'}
         </button>

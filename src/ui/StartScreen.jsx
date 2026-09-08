@@ -1,52 +1,19 @@
 import { useStore } from '../state/store.js'
-import { RESUME } from '../data/resume.js'
 import { initSound, setSoundEnabled } from '../lib/sound.js'
 
-const isTouch =
-  typeof window !== 'undefined' && (window.matchMedia?.('(pointer:coarse)').matches || 'ontouchstart' in window)
-
 export default function StartScreen() {
-  const start = useStore((s) => s.start)
-  const openPanel = useStore((s) => s.openPanel)
-  const soundOn = useStore((s) => s.soundOn)
-  const { name, role, bio } = RESUME.profile
-
-  const begin = () => {
-    initSound()
-    setSoundEnabled(soundOn)
-    start()
+  const begin = (autopilot) => {
+    const state = useStore.getState()
+    initSound(); setSoundEnabled(state.soundOn)
+    state.setAutopilot(autopilot); state.setResumeFollowing(true); state.start()
   }
-
   return (
-    <div className="start" role="dialog" aria-label={`${name} — interactive résumé`}>
-      <div className="start-card">
-        <p className="start-kicker">Interactive résumé</p>
-        <h1 className="start-name">{name}</h1>
-        <p className="start-role">{role}</p>
-        <p className="start-bio">{bio}</p>
-
-        <div className="start-controls">
-          {isTouch ? (
-            <span>Use the on-screen pad to drive · tap a glowing marker to open it</span>
-          ) : (
-            <span>
-              <b>WASD</b> / arrows to drive · <b>E</b> or <b>Space</b> to open a zone · <b>Esc</b> to close
-            </span>
-          )}
-        </div>
-
-        <div className="start-actions">
-          <button className="btn btn-primary" onClick={begin} autoFocus>
-            ▶ Start exploring
-          </button>
-          <button className="btn btn-ghost" onClick={() => { start(); openPanel('profile', 'menu') }}>
-            Skip to the résumé
-          </button>
-        </div>
-        <p className="start-foot">
-          Prefer plain text? Every section is also in the menu, and there's a full text version linked there.
-        </p>
-      </div>
+    <div className="career-tour-start">
+      <p>Explore the career circuit</p>
+      <h2>Take a lap<br />through my work.</h2>
+      <span>Nine spaced-out stops, one card at a time. The guided tour waits while you read. Choose Continue on the 3D card when you’re ready.</span>
+      <button onClick={() => begin(true)}>Start guided tour →</button>
+      <button className="tour-manual" onClick={() => begin(false)}>Drive yourself · WASD / arrows</button>
     </div>
   )
 }

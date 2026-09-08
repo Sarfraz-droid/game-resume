@@ -7,7 +7,6 @@ import Fallback2D from './fallback/Fallback2D.jsx'
 import { isWebGLAvailable } from './lib/webgl.js'
 import { useKeyboard } from './game/input.js'
 import { useStore } from './state/store.js'
-import { RESUME } from './data/resume.js'
 
 export default function App() {
   useKeyboard()
@@ -25,15 +24,13 @@ export default function App() {
   if (plain) return <Fallback2D reason="user" />
 
   return (
-    <>
-      <h1 className="sr-only">
-        {RESUME.profile.name} — {RESUME.profile.role}. Interactive résumé.
-      </h1>
-
-      <Game />
-      <Hud />
-      {phase === 'start' && <StartScreen />}
-      {phase === 'loading' && <LoadingScreen />}
-    </>
+    <main className="game-experience">
+      <section className="game-pane" aria-label="Interactive career circuit">
+        <Game />
+        <Hud />
+        {phase === 'start' && <StartScreen />}
+        {phase === 'loading' && <LoadingScreen />}
+      </section>
+    </main>
   )
 }

@@ -1,14 +1,16 @@
+import DrivingControls from './DrivingControls.jsx'
+import DrivingStatus from './DrivingStatus.jsx'
 import TopBar from './TopBar.jsx'
 import Menu from './Menu.jsx'
 import Minimap from './Minimap.jsx'
 import CameraControl from './CameraControl.jsx'
 import InteractionHint from './InteractionHint.jsx'
 import TouchControls from './TouchControls.jsx'
-import Panel from './Panel.jsx'
 import { useStore } from '../state/store.js'
 
 export default function Hud() {
   const phase = useStore((s) => s.phase)
+  const focused = useStore(s => !!s.exhibitFocus)
   const playing = phase === 'playing'
   return (
     <div className="hud">
@@ -16,13 +18,15 @@ export default function Hud() {
       <Menu />
       {playing && (
         <>
-          <Minimap />
-          <CameraControl />
+          {!focused && <Minimap />}
+          <DrivingStatus />
+          <DrivingControls />
+          {!focused && <CameraControl />}
           <InteractionHint />
           <TouchControls />
         </>
       )}
-      <Panel />
+
     </div>
   )
 }

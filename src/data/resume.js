@@ -1,120 +1,64 @@
-/* ════════════════════════════════════════════════════════════════════════════
-   ✏️  EDIT EVERYTHING HERE — this is the only file you normally touch.
+const resumePdf = new URL('../../Resume.pdf', import.meta.url).href
 
-   The 3D world, the pop-up panels, the persistent menu and the plain-text
-   fallback résumé are all generated from this object.
-   ════════════════════════════════════════════════════════════════════════════ */
-
+// Transcribed from the supplied Resume.pdf. Dates and metrics are retained as
+// stated in that document; editorial summaries do not add new achievements.
 export const RESUME = {
   profile: {
-    name: 'Sarfraz Alam',            // [Your Name]
-    role: 'Software Engineer',        // [Role / Profession]
-    // [Short bio]
-    bio: 'I build playful, well-crafted software — from tidy APIs to interactive 3D toys like this one. I care about clean interfaces, fast feedback loops, and actually shipping.',
-    location: 'Your City · open to remote',
-    facts: [
-      'N+ years building web & product software',
-      'Full-stack, happiest near the frontend',
-      'Small teams, real ownership',
-    ],
+    name: 'Mohammad Sarfraz Alam',
+    role: 'Senior Software Engineer · Full Stack & Gen AI',
+    bio: 'Full-stack engineer building product experiences, backend platforms, and agentic AI workflows. Currently at Naukri.com (Info Edge India Ltd.).',
+    location: 'Noida, Uttar Pradesh, India',
+    facts: ['Naukri.com · Helium · Swiggy · Google Summer of Code', 'B.Tech. ECE, Jamia Millia Islamia · 8.99 CGPA', 'Kavach 2023 Cyber Security Hackathon winner'],
   },
-
-  // [Résumé PDF URL] — drop a file in /public and use "/resume.pdf", or paste a link.
-  resumeUrl: '',
-
+  resumeUrl: resumePdf,
   contact: {
-    email: 'alamsarfraz422@gmail.com',                 // [Email]
-    linkedin: 'https://www.linkedin.com/in/your-handle', // [LinkedIn URL]
-    github: 'https://github.com/your-handle',            // [GitHub URL]
+    email: 'alamsarfraz422@gmail.com', phone: '+91-7303435034',
+    linkedin: 'https://www.linkedin.com/in/sarfraz-alam-113575201/',
+    github: 'https://github.com/Sarfraz-droid',
   },
-
-  // [Skills]
   skills: [
-    { group: 'Languages', items: ['TypeScript', 'JavaScript', 'Python', 'SQL', 'Go'] },
-    { group: 'Frontend', items: ['React', 'Next.js', 'three.js / R3F', 'CSS', 'Vite'] },
-    { group: 'Backend', items: ['Node', 'PostgreSQL', 'REST', 'GraphQL', 'Redis'] },
-    { group: 'Platform', items: ['Docker', 'AWS', 'CI/CD', 'Terraform', 'Observability'] },
+    { group: 'Languages', items: ['Java', 'JavaScript', 'TypeScript', 'C', 'C++', 'SQL', 'Python', 'Go'] },
+    { group: 'Product engineering', items: ['React.js', 'Node.js', 'React Native', 'Android', 'Testing'] },
+    { group: 'Services & data', items: ['gRPC', 'Spring Boot', 'Kafka', 'Elasticsearch', 'Aerospike'] },
+    { group: 'Applied in my work', items: ['LangChain', 'RAG', 'MCP', 'Firebase Cloud Functions', 'Kubernetes', 'Akamai'] },
   ],
-
-  // [Work experience]
   experience: [
-    {
-      role: 'Senior Software Engineer',
-      company: 'Company A',
-      period: '2023 — Present',
-      points: [
-        'Led the rebuild of X; cut page load from Ns to Ns.',
-        'Own the Y service end-to-end (~M requests/day).',
-        'Mentor 3 engineers and run the frontend guild.',
-      ],
-    },
-    {
-      role: 'Software Engineer',
-      company: 'Company B',
-      period: '2020 — 2023',
-      points: [
-        'Shipped the Z feature, adopted by K% of customers.',
-        'Introduced end-to-end tests; halved production regressions.',
-      ],
-    },
-    {
-      role: 'Junior Developer',
-      company: 'Company C',
-      period: '2018 — 2020',
-      points: ['Built internal tools and dashboards used across the company.'],
-    },
+    { role: 'Senior Software Engineer', company: 'Naukri.com · Info Edge India Ltd.', period: 'Oct 2024 – Present', points: [
+      'Worked across frontend, backend, and agentic AI workflows as a Full-Stack AI Engineer across multiple product pods.',
+      'Engineered bot defense and rate limiting, reducing security infrastructure costs by 50%.',
+      'Built AmbitionBox MCP and LangChain RAG agents: 50% better contextual accuracy and 25% higher user engagement.',
+      'Architected vector embedding and clustering-based deduplication, reducing identified duplicate pages by 100%.',
+      'Led Kubernetes and machine migrations and implemented Akamai security policies to improve production reliability.',
+      'Built real-time messaging and agentic AI moderation for AmbitionBox Communities: interactions increased 25%, content engagement 100%.',
+      'Implemented site-wide CAPTCHA validation to mitigate malicious traffic, scraping, and data abuse.',
+    ] },
+    { role: 'Software Engineer', company: 'Helium · gethelium.co', period: 'June 2024 – Oct 2024', points: [
+      'Built Helium Glide, an AI-powered no-code visual editor for e-commerce, with a high-performance rendering engine using low-level React APIs.',
+      'Integrated Helium Flare for AI-driven personalization.',
+      'Migrated CSR to ISR, improving performance, scalability, and rendering efficiency for no-code generated applications.',
+    ] },
+    { role: 'Software Engineer Intern', company: 'Swiggy Instamart', period: 'Oct 2023 – June 2024', points: [
+      'Improved IM Retails reliability with critical New Relic alerts, production monitoring, and code-quality measures.',
+      'Migrated critical Picker workflows from Next.js to React Native and revamped the IM Retails UI.',
+    ] },
+    { role: 'Open Source Contributor', company: 'Google Summer of Code · ScoReLab', period: 'June 2022 – Sept 2022', points: [
+      'Revamped Codelabz UI and architecture, modernizing its dependency stack and development environment to reduce development load time.',
+      'Built high-performance serverless backend APIs with Firebase Cloud Functions.',
+    ] },
   ],
-
-  // [Projects]
   projects: [
-    {
-      name: 'Project One',
-      blurb: 'A short, punchy description of what it is and why it matters.',
-      stack: ['React', 'Node', 'PostgreSQL'],
-      outcome: '10k+ users · featured on ProductHunt',
-      github: 'https://github.com/your-handle/project-one',
-      live: 'https://project-one.example.com',
-      accent: '#e06c5a',
-    },
-    {
-      name: 'Project Two',
-      blurb: 'Another project. Keep each blurb to a sentence or two.',
-      stack: ['TypeScript', 'three.js', 'WebGL'],
-      outcome: 'Open-source · 800 stars',
-      github: 'https://github.com/your-handle/project-two',
-      live: '',
-      accent: '#4c9f70',
-    },
-    {
-      name: 'Résumé Island',
-      blurb: 'This site — an explorable low-poly world built with React + react-three-fiber.',
-      stack: ['React', 'R3F', 'drei', 'Vite'],
-      outcome: 'You are standing in it.',
-      github: 'https://github.com/your-handle/resume-island',
-      live: '',
-      accent: '#6c8ea4',
-    },
+    { name: 'Hardware Forensic Suite', blurb: 'Disk, memory, and network analysis in a hardware forensic suite.', stack: ['Disk analysis', 'Memory analysis', 'Network analysis'], outcome: 'Winner · Kavach 2023 Cyber Security Hackathon by AICTE, BPRD, and I4C', live: 'https://news.careers360.com/jmi-engineering-students-win-first-cyber-security-challenge', accent: '#e8b75d' },
+    { name: 'WayFinder', blurb: 'LangChain-based agentic AI travel planner orchestrating research across Cleartrip, RedBus, Booking.com, Swiggy, Reddit, and web search.', stack: ['LangChain', 'Agentic AI'], outcome: 'Personalized, budget-optimized itineraries', live: 'https://x.com/sarf_alam0206/status/2086064709908996509', accent: '#7bc7ba' },
+    { name: 'BLAH.JS', blurb: 'TypeScript UI rendering library with a custom compiler, parser, and VS Code extension.', stack: ['TypeScript', 'Compiler', 'Parser', 'VS Code'], outcome: 'Dynamic rendering and efficient DOM updates through ID-based element tracking', github: 'https://github.com/Sarfraz-droid/blah.js', accent: '#82aee4' },
+    { name: 'Rolling The Dice', blurb: 'Research on strategic decision-making in LLMs using Monopoly to evaluate reasoning, planning, and long-term decision-making.', stack: ['LLMs', 'Reasoning', 'Planning'], live: 'https://links.sarfrazalam.in/rolling-the-dice', accent: '#b7a0e0' },
   ],
-
-  // [Education]
   education: [
-    {
-      title: 'B.S. in Computer Science',
-      org: 'Your University',
-      period: '20XX',
-      detail: 'Coursework: Algorithms, Distributed Systems, Graphics, HCI.',
-    },
-    {
-      title: 'Certifications',
-      org: 'Various',
-      period: '',
-      detail: 'AWS Solutions Architect · relevant courses & bootcamps here.',
-    },
+    { title: 'B.Tech. · Electronics & Communication Engineering', org: 'Jamia Millia Islamia', period: 'July 2020 – July 2024', detail: '8.99 CGPA' },
+    { title: 'Higher Secondary', org: 'Central Board of Secondary Education', period: '2020', detail: '92.6%' },
+    { title: 'Secondary', org: 'Central Board of Secondary Education', period: '2018', detail: '84.8%' },
   ],
-
   about: {
-    story:
-      'Outside of work I tinker with generative art, ride bikes, and over-engineer my coffee setup. I like teaching, small tools, and puzzles with a satisfying click.',
-    interests: ['Generative art', 'Cycling', 'Mechanical keyboards', 'Board games', 'Coffee'],
+    story: 'Volunteered at AGAMI and consulted developers building an Online Dispute Resolution (ODR) protocol.',
+    interests: ['Open source · ScoReLab / Codelabz', 'LLM decision-making research', 'Online Dispute Resolution · AGAMI'],
   },
 }

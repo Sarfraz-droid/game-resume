@@ -1,31 +1,28 @@
 import { useEffect, useState } from 'react'
-import { touch } from '../game/input.js'
+import { touch, clearInput, requestReset } from '../game/input.js'
 import { useStore } from '../state/store.js'
 
 const GLYPH = { up: '▲', down: '▼', left: '◀', right: '▶' }
 
 export default function TouchControls() {
+  const focused = useStore(s => s.exhibitFocus)
   const current = useStore((s) => s.current)
+  const menuOpen = useStore((s) => s.menuOpen)
   const panel = useStore((s) => s.panel)
-  const openPanel = useStore((s) => s.openPanel)
+  const focusExhibit = useStore((s) => s.focusExhibit)
   const [on, setOn] = useState(false)
 
   useEffect(() => {
     setOn(window.matchMedia?.('(pointer:coarse)').matches || 'ontouchstart' in window)
-    const clear = () => {
-      touch.up = touch.down = touch.left = touch.right = false
-    }
-    window.addEventListener('pointerup', clear)
-    window.addEventListener('pointercancel', clear)
-    return () => {
-      window.removeEventListener('pointerup', clear)
-      window.removeEventListener('pointercancel', clear)
-    }
+    return clearInput
   }, [])
 
-  if (!on || panel) return null
+  if (!on || panel || menuOpen || focused) return null
   const press = (dir, v) => (e) => {
     e.preventDefault()
+    if (v) { useStore.getState().setAutopilot(false); useStore.getState().focusExhibit(null) }
+    if (v && dir === 'reset') requestReset()
+    if (v) e.currentTarget.setPointerCapture(e.pointerId)
     touch[dir] = v
   }
 
@@ -39,18 +36,25 @@ export default function TouchControls() {
             aria-label={'drive ' + d}
             onPointerDown={press(d, true)}
             onPointerUp={press(d, false)}
-            onPointerLeave={press(d, false)}
+            onPointerCancel={press(d, false)}
+            onLostPointerCapture={press(d, false)}
           >
             {GLYPH[d]}
           </button>
         ))}
       </div>
+      <button className="touch-action touch-drift" aria-label="Hold to drift"
+        onPointerDown={press('drift', true)} onPointerUp={press('drift', false)}
+        onPointerCancel={press('drift', false)} onLostPointerCapture={press('drift', false)}>Drift</button>
+      <button className="touch-action touch-reset" aria-label="Reset car to track"
+        onPointerDown={press('reset', true)} onPointerUp={press('reset', false)}
+        onPointerCancel={press('reset', false)} onLostPointerCapture={press('reset', false)}>Reset</button>
       <button
         className={'touch-action' + (current ? ' touch-action-hot' : '')}
-        aria-label="open zone"
+        aria-label="Focus résumé display"
         onPointerDown={(e) => {
           e.preventDefault()
-          if (current) openPanel(current, 'world')
+          if (current) focusExhibit(current)
         }}
       >
         {current ? '⤢' : '·'}

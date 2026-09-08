@@ -20,6 +20,7 @@ export default function DriftPuffs() {
         vx: 0,
         vz: 0,
         spin: 0,
+        baseY: 0,
       })),
     []
   )
@@ -27,8 +28,8 @@ export default function DriftPuffs() {
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.05)
     const reduced = selectReducedMotion(useStore.getState())
-    const speed = Math.abs(carState.speed)
-    const drifting = !reduced && speed > 5.5 && Math.abs(carState.steer) > 0.34
+    const game = useStore.getState()
+    const drifting = !reduced && game.phase === 'playing' && !game.panel && !game.menuOpen && carState.drifting
     const now = state.clock.elapsedTime
 
     if (drifting && now - lastSpawn.current > SPAWN_GAP) {
@@ -38,7 +39,7 @@ export default function DriftPuffs() {
       const rightX = Math.cos(carState.heading)
       const rightZ = -Math.sin(carState.heading)
 
-      for (const side of [-0.62, 0.62]) {
+      for (const side of [-0.46, 0.46]) {
         const index = cursor.current++ % PUFF_COUNT
         const particle = particles[index]
         const mesh = meshes.current[index]
@@ -51,11 +52,12 @@ export default function DriftPuffs() {
         particle.vz = -forwardZ * (0.25 + Math.random() * 0.35) + rightZ * side * 0.16
         particle.spin = (Math.random() - 0.5) * 1.8
 
+        particle.baseY = carState.y + 0.08
         mesh.visible = true
         mesh.position.set(
-          carState.x - forwardX * 1.12 + rightX * side,
-          0.14,
-          carState.z - forwardZ * 1.12 + rightZ * side
+          carState.x - forwardX * 0.525 + rightX * side,
+          particle.baseY,
+          carState.z - forwardZ * 0.525 + rightZ * side
         )
         mesh.rotation.set(0, Math.random() * Math.PI, 0)
       }
@@ -74,7 +76,7 @@ export default function DriftPuffs() {
 
       mesh.position.x += particle.vx * dt
       mesh.position.z += particle.vz * dt
-      mesh.position.y = 0.14 + progress * 0.62
+      mesh.position.y = particle.baseY + progress * 0.62
       mesh.rotation.y += particle.spin * dt
       const size = 0.24 + progress * 0.72
       mesh.scale.set(size * 1.32, size * 0.92, size)

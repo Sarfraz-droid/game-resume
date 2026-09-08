@@ -5,13 +5,13 @@
 // turns these into world positions.
 
 export const ZONES = [
-  { key: 'profile', label: 'Welcome Plaza', hint: 'Read the intro', icon: '👋', color: '#f2a65a', variant: 'plaza' },
-  { key: 'skills', label: 'Skills District', hint: 'Browse the toolkit', icon: '⚡', color: '#4c9f70', variant: 'crystals' },
-  { key: 'experience', label: 'Experience Road', hint: 'Walk the timeline', icon: '🛣️', color: '#6c8ea4', variant: 'gate' },
-  { key: 'projects', label: 'Project Gallery', hint: 'View the work', icon: '🖼️', color: '#e06c5a', variant: 'billboard' },
-  { key: 'education', label: 'The Library', hint: 'Check the shelves', icon: '📚', color: '#8f7ee0', variant: 'library' },
-  { key: 'about', label: 'The Studio', hint: 'Say hello', icon: '🏕️', color: '#d9a441', variant: 'camp' },
-  { key: 'contact', label: 'Contact Portal', hint: "Let's work together", icon: '📡', color: '#f2668b', variant: 'portal' },
+  { key: 'profile', label: 'Start · Profile', hint: 'Meet the driver', icon: 'P', color: '#ffc06b' },
+  { key: 'skills', label: 'Skills Corner', hint: 'Core toolkit', icon: 'S', color: '#d0b171' },
+  { key: 'experience', label: 'Experience Bend', hint: 'Career lap', icon: 'E', color: '#d79b74' },
+  { key: 'projects', label: 'Project Chicane', hint: 'Selected work', icon: 'W', color: '#f08561' },
+  { key: 'education', label: 'Education Straight', hint: 'Learning record', icon: 'Ed', color: '#d2b791' },
+  { key: 'about', label: 'Research & Community', hint: 'Open source & public impact', icon: 'A', color: '#e1ad58' },
+  { key: 'contact', label: 'Finish · Contact', hint: 'Start a conversation', icon: 'C', color: '#efa08a' },
 ]
 
 export const zoneByKey = Object.fromEntries(ZONES.map((z) => [z.key, z]))

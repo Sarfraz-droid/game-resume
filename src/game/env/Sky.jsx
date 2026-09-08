@@ -11,10 +11,10 @@ function Dome() {
     c.height = 256
     const ctx = c.getContext('2d')
     const g = ctx.createLinearGradient(0, 0, 0, 256)
-    g.addColorStop(0.0, '#8fb9e8')
-    g.addColorStop(0.45, '#bfd9e6')
-    g.addColorStop(0.75, '#f0e4cf')
-    g.addColorStop(1.0, '#f8d9b0')
+    g.addColorStop(0.0, '#bba7a0')
+    g.addColorStop(0.45, '#e5c5a7')
+    g.addColorStop(0.75, '#f4d9b2')
+    g.addColorStop(1.0, '#efbd88')
     ctx.fillStyle = g
     ctx.fillRect(0, 0, 16, 256)
     const t = new THREE.CanvasTexture(c)
@@ -68,7 +68,7 @@ function Mountains() {
   return peaks.map((p, i) => (
     <mesh key={i} position={[p.x, p.h / 2 - 12, p.z]}>
       <coneGeometry args={[p.w, p.h, 5]} />
-      <meshStandardMaterial color={p.far > 1 ? '#bcd0dd' : '#a7c1d2'} roughness={1} flatShading fog />
+      <meshStandardMaterial color={p.far > 1 ? '#cfb69e' : '#b79984'} roughness={1} flatShading fog />
     </mesh>
   ))
 }
@@ -92,11 +92,11 @@ function Archipelago() {
     <group>
       <mesh position={[0, -4.15, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <circleGeometry args={[330, 128]} />
-        <meshStandardMaterial color="#5598a6" roughness={0.32} metalness={0.08} />
+        <meshStandardMaterial color="#708b86" roughness={0.32} metalness={0.08} />
       </mesh>
       <mesh position={[0, -4.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[68, 325, 128]} />
-        <meshStandardMaterial color="#82c0c2" roughness={0.18} transparent opacity={0.42} />
+        <meshStandardMaterial color="#b1b5a0" roughness={0.18} transparent opacity={0.42} />
       </mesh>
       {islets.map((p, i) => (
         <group key={i} position={[p.x, -3.7, p.z]} rotation={[0, i * 1.17, 0]}>

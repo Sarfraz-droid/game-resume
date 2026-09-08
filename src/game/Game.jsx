@@ -16,7 +16,7 @@ export default function Game() {
       }}
       camera={{ fov: 50, position: [0, 20, 46], near: 0.1, far: 600 }}
     >
-      <color attach="background" args={['#cfe9ef']} />
+      <color attach="background" args={['#eed0ae']} />
       <Suspense fallback={null}>
         <Scene />
       </Suspense>

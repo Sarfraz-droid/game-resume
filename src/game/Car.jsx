@@ -2,23 +2,21 @@ import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
 import * as THREE from 'three'
-import { obstacles, zoneLayout, carState, DRIVE_R, CAR_R, CAR_SPAWN } from './layout.js'
-import { KitPart, hasKit } from './kit.jsx'
+import { advanceVehicle, createVehicle, VEHICLE } from './vehiclePhysics.js'
+import { trackPhysics, TRACK_SURFACE_Y } from './trackPhysics.js'
+import { zoneLayout, carState, CAR_SPAWN } from './layout.js'
+import { createDrivingAssist, drivingControls } from './drivingAssist.js'
+import { nearestExhibitStop } from './exhibitStops.js'
 import { readInput } from './input.js'
-import { useStore, selectReducedMotion } from '../state/store.js'
+import { useStore, selectReducedMotion, selectReadingPause } from '../state/store.js'
 import { updateEngine } from '../lib/sound.js'
 
 // ---- tuning ---------------------------------------------------------------
-const ACCEL = 26
-const DRAG = 0.22
-const MAX_FWD = 16
-const MAX_REV = -7
-const TURN_RATE = 2.8
-const READ_DIST = 5.6
-const AUTO_OPEN_COOLDOWN = 6000
+const MAX_FWD = VEHICLE.maxForward
 const CAM_FOV = 50
 const CAM_BACK = 11
 const CAM_HEIGHT = 7.4
+const KART_SCALE = 0.5
 // ------------------------------------------------------------------------
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
@@ -52,12 +50,15 @@ export default function Car() {
   const sfl = useRef(), sfr = useRef()
   const ant = useRef()
   const beamL = useRef(), beamR = useRef()
-  const realKart = hasKit('kart')
+  const driver = useRef(createDrivingAssist())
+  const physics = useRef(createVehicle(CAR_SPAWN))
+  // The bundled kart asset was authored with a below-ground origin. The
+  // procedural kart has a stable wheel-to-road contact point on this level.
+  const realKart = false
 
   const s = useRef({
-    x: CAR_SPAWN.x, z: CAR_SPAWN.z, heading: CAR_SPAWN.heading, speed: 0,
-    lean: 0, pitch: 0, steer: 0, wheel: 0,
-    camReady: 0, idle: 0, orbit: 0, intro: 0,
+    x: CAR_SPAWN.x, y: TRACK_SURFACE_Y, z: CAR_SPAWN.z, heading: CAR_SPAWN.heading, speed: 0,
+    lean: 0, pitch: 0, steer: 0, wheel: 0, camReady: 0, idle: 0, orbit: 0,
   }).current
 
   useFrame((_, dRaw) => {
@@ -79,59 +80,39 @@ export default function Car() {
       return
     }
 
-    const frozen = !!st.panel
-    const { thr, str } = frozen ? { thr: 0, str: 0 } : readInput()
-
-    // ---------- drive ----------
+    const frozen = !!st.panel || st.menuOpen || st.plain || !!st.exhibitFocus
+    const controls = frozen ? { thr: 0, str: 0 } : readInput()
+    const { thr, str } = controls
+    if (st.autopilot && (controls.thr || controls.str || controls.drift || controls.reset)) st.setAutopilot(false)
+    const automatic = useStore.getState().autopilot
+    const reading = selectReadingPause(useStore.getState())
     const prev = s.speed
-    s.speed += thr * ACCEL * dt
-    s.speed *= Math.pow(DRAG, dt)
-    s.speed = clamp(s.speed, MAX_REV, MAX_FWD)
-    if (Math.abs(s.speed) < 0.02) s.speed = 0
-    s.heading += str * TURN_RATE * dt * clamp(s.speed / 6, -1, 1)
-
-    s.x += Math.sin(s.heading) * s.speed * dt
-    s.z += Math.cos(s.heading) * s.speed * dt
-
-    for (let k = 0; k < 2; k++) {
-      for (const o of obstacles) {
-        const dx = s.x - o.x
-        const dz = s.z - o.z
-        const d = Math.hypot(dx, dz)
-        const min = o.r + CAR_R
-        if (d < min && d > 1e-4) {
-          s.x = o.x + (dx / d) * min
-          s.z = o.z + (dz / d) * min
-          s.speed *= 0.45
-        }
-      }
-    }
-    const rad = Math.hypot(s.x, s.z)
-    if (rad > DRIVE_R) {
-      s.x *= DRIVE_R / rad
-      s.z *= DRIVE_R / rad
-      s.speed *= 0.4
-    }
-
+    const sim = advanceVehicle(physics.current, controls, dRaw, trackPhysics.current, CAR_SPAWN, frozen || reading,
+      (vehicle, input, step, track) => drivingControls(vehicle, input, step, track, driver.current, automatic, st.driveAssist))
+    s.x = sim.x
+    s.y = sim.y
+    s.z = sim.z
+    s.speed = sim.speed
+    s.heading = sim.heading
+    s.steer = sim.steer
+    const speedRatio = clamp(Math.hypot(sim.vx, sim.vz) / MAX_FWD, 0, 1)
     // ---------- body juice ----------
-    const accel = (s.speed - prev) / dt
-    s.steer += (str - s.steer) * Math.min(1, dt * 10)
-    const speedN = Math.abs(s.speed) / MAX_FWD
+    const accel = (s.speed - prev) / Math.max(dt, 0.001)
+    const speedN = speedRatio
     const jLean = reduced ? 0 : -s.steer * clamp(speedN, 0, 1) * 0.14
-    const jPitch = reduced ? 0 : clamp(-accel * 0.006, -0.13, 0.13)
+    const accelPitch = reduced ? 0 : clamp(-accel * 0.006, -0.13, 0.13)
     s.lean = damp(s.lean, jLean, 9, dt)
-    s.pitch = damp(s.pitch, jPitch, 7, dt)
-    const bob = reduced || Math.abs(s.speed) < 0.5 ? 0 : Math.sin(t * 26) * 0.02
-
-    car.current.position.set(s.x, bob, s.z)
-    car.current.rotation.set(s.pitch, s.heading, s.lean)
+    s.pitch = damp(s.pitch, reduced ? 0 : accelPitch, 8, dt)
+    car.current.position.set(s.x, s.y, s.z)
+    car.current.rotation.set(sim.pitch, s.heading, sim.roll, 'YXZ')
     if (shell.current) {
+      shell.current.rotation.set(s.pitch, 0, s.lean)
       shell.current.position.y = (realKart ? 0.05 : 0.62) + (reduced ? 0 : Math.sin(t * 3.1) * 0.01)
     }
 
-    s.wheel -= (s.speed * dt) / 0.44
+    s.wheel = sim.wheel
     for (const w of [fl, fr, rl, rr]) if (w.current) w.current.rotation.x = s.wheel
-    for (const w of [sfl, sfr]) if (w.current) w.current.rotation.y = s.steer * 0.42
+    for (const w of [sfl, sfr]) if (w.current) w.current.rotation.y = s.steer * (0.48 / (1 + Math.abs(s.speed) * 0.09))
     if (ant.current) {
       ant.current.rotation.x = (reduced ? 0 : Math.sin(t * 7) * 0.12) - clamp(accel * 0.01, -0.3, 0.3)
       ant.current.rotation.z = -s.lean * 1.6
@@ -141,34 +122,24 @@ export default function Car() {
     if (beamR.current) beamR.current.intensity = beam
 
     // ---------- publish ----------
+    carState.drivingMode = reading ? 'Reading · Continue when ready' : frozen ? 'Paused' : driver.current.status
+    carState.autopilotLaps = driver.current.laps
+    carState.y = s.y
+    carState.drifting = !frozen && sim.drifting
+    carState.slip = sim.slip
+    carState.grounded = sim.grounded
     carState.x = s.x
     carState.z = s.z
     carState.heading = s.heading
-    carState.speed = s.speed
+    carState.speed = reading ? 0 : s.speed
     carState.steer = s.steer
-    updateEngine(speedN)
+    updateEngine(frozen || reading ? 0 : speedN)
 
     // ---------- nearest zone ----------
-    let near = null
-    let nd = Infinity
-    for (const zn of zoneLayout) {
-      const d = Math.hypot(s.x - zn.pos[0], s.z - zn.pos[2])
-      if (d < nd) {
-        nd = d
-        near = zn
-      }
-    }
-    carState.nearDist = nd
-    const inRange = nd < READ_DIST ? near : null
-    st.setCurrent(inRange ? inRange.key : null)
-    if (
-      inRange &&
-      !st.panel &&
-      Math.abs(s.speed) < 2 &&
-      Date.now() - (st.lastOpen[inRange.key] || 0) > AUTO_OPEN_COOLDOWN
-    ) {
-      st.openPanel(inRange.key, 'world')
-    }
+    const stop = nearestExhibitStop(s.x, s.z, s.heading)
+    carState.nearDist = stop ? Math.hypot(s.x - stop.road[0], s.z - stop.road[1]) : Infinity
+    st.setCurrentStop(stop?.id || null, stop?.zone.key || null)
+    if (stop && !frozen) st.markVisited(stop.zone.key)
 
     // ---------- camera ----------
     s.camReady = Math.min(1, s.camReady + dt / 1.6)
@@ -177,7 +148,7 @@ export default function Car() {
     // idle orbit (restrained) when parked with nothing open
     const moving = Math.abs(s.speed) > 0.3 || thr || str
     s.idle = moving ? 0 : s.idle + dt
-    const orbiting = !reduced && !frozen && s.idle > 3
+    const orbiting = !reduced && !frozen && !reading && s.idle > 3
     s.orbit = orbiting ? s.orbit + dt * 0.15 : damp(s.orbit, 0, 3, dt)
 
     if (frozen && st.panelSource === 'world') {
@@ -204,7 +175,7 @@ export default function Car() {
       _goal.set(s.x + rx * 13, 5.6, s.z + rz * 13)
       _look.set(s.x, 1.5, s.z)
     } else {
-      const approach = clamp((14 - nd) / 10, 0, 1)
+      const approach = clamp((14 - carState.nearDist) / 10, 0, 1)
       const back = CAM_BACK + (reduced ? 0 : speedN * 3.2) - approach * 2.4
       const high = CAM_HEIGHT + approach * 0.6
       // behind-the-car vector, rotated by the idle-orbit angle
@@ -224,6 +195,11 @@ export default function Car() {
       _look
         .set(s.x, 1.7, s.z)
         .addScaledVector(_fwd, 2.4 + speedN * 3) // look-ahead
+    }
+
+    if (!st.exhibitFocus) {
+      _goal.y += s.y - TRACK_SURFACE_Y
+      _look.y += s.y - TRACK_SURFACE_Y
     }
 
     const scripted = !frozen && st.camMode !== 'follow'
@@ -255,7 +231,12 @@ export default function Car() {
   const P = '#e8663f'
 
   return (
-    <group ref={car} position={[CAR_SPAWN.x, 0, CAR_SPAWN.z]} rotation={[0, CAR_SPAWN.heading, 0]}>
+    <group
+      ref={car}
+      position={[CAR_SPAWN.x, TRACK_SURFACE_Y, CAR_SPAWN.z]}
+      rotation={[0, CAR_SPAWN.heading, 0]}
+      scale={KART_SCALE}
+    >
       {/* Low undertray for the procedural fallback; the real kart supplies its own chassis. */}
       {!realKart && (
         <mesh castShadow position={[0, 0.38, 0]}>

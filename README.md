@@ -1,9 +1,9 @@
 # Résumé Island 🏝️🚗
 
 An explorable low-poly 3D game-résumé. Drive a little buggy around a floating
-island and roll up to seven zones — Welcome Plaza, Skills District, Experience
-Road, Project Gallery, The Library, The Studio, Contact Portal — to open elegant
-info panels.
+island and discover seven in-world résumé exhibits between the track lanes.
+The supplied Resume.pdf provides the real experience, projects, skills,
+education, research, and contact information.
 
 Built with **React + Vite + [react-three-fiber](https://docs.pmnd.rs/react-three-fiber)**
 (`drei` + `postprocessing` for the look).
@@ -19,10 +19,9 @@ npm run preview
 
 ## Edit your content
 
-**`src/data/resume.js`** is the only file you normally touch — name, role, bio,
-skills, experience, projects, education, about, contact, and `resumeUrl` (drop a
-PDF in `/public` and set `"/resume.pdf"`). Add/remove entries freely; zones lay
-themselves out.
+**`src/data/resume.js`** contains the résumé transcribed from `Resume.pdf`.
+`src/data/exhibits.js` arranges it into pages for the in-world displays. The
+original PDF is bundled into the build and linked from Download Résumé.
 
 ## Where things live
 
@@ -39,7 +38,10 @@ themselves out.
 | Sky, sun, clouds, mountains, motes | `src/game/env/Sky.jsx` |
 | Lighting + contact shadows | `src/game/Lighting.jsx` |
 | Post-processing (bloom, vignette) | `src/game/Effects.jsx` |
-| Vehicle + physics + follow camera | `src/game/Car.jsx` |
+| Vehicle + follow camera | `src/game/Car.jsx` |
+| Fixed-step handling, drift, gravity, collisions | `src/game/vehiclePhysics.js` |
+| Imported track surface sampling | `src/game/trackPhysics.js` |
+| Road arrows, jump lights, braking signs | `src/game/CourseMarks.jsx` |
 | Zone markers / interaction rings | `src/game/ZoneMarker.jsx` |
 | HUD, menu, panels, minimap | `src/ui/*` |
 | Plain-text fallback résumé | `src/fallback/Fallback2D.jsx` |
@@ -57,10 +59,43 @@ themselves out.
 
 ## Controls
 
-**WASD / arrows** drive · **E / Space** open a zone · **Esc** close · on touch
+**WASD / arrows** drive · **Space / Shift** hold to drift · **S / ↓** brake then reverse · **R** reset to track · **E / Enter** select the nearby résumé chapter · **Esc** close · on touch
 devices an on-screen pad appears automatically.
+
+For the jump, follow the mint arrows, line up straight, release drift, and hold
+the throttle from the runway entrance. Brake after landing for the next bend.
+The speed display shows km/h; skid marks and tyre smoke reflect actual sliding.
+
+**P / Autopilot** drives continuous laps at a faster touring pace, brakes for bends, and accelerates for
+jumps. It rejoins the course if enabled off-road or facing the wrong way and
+recovers if stuck. Steering, throttle, braking, drift, or reset immediately
+returns control to you. Menus and panels pause the pilot with the car.
+
+**H / Drive assist** toggles gentle steering guidance, extra traction, and
+corner braking (on by default). Assist does not add throttle and leaves reverse,
+intentional drifting, and the jump run-up under your control.
 
 ## Deploy
 
 `dist/` is a static site — GitHub Pages, Netlify, Vercel, etc. For Pages under a
 repo subpath, set `base: '/<repo>/'` in `vite.config.js`.
+
+## Trackside résumé
+
+The game fills the viewport. Nine curated cards are evenly spaced by distance
+along the circuit. Related facts are merged; only experience and projects need
+an extra stop. Small markers and the minimap show the updated chapter locations.
+The profile card stays on display in the 3D world, including after Continue or
+leaving its stop. Other cards appear only at their own stops. Autopilot waits at each card until Continue or
+Escape is pressed; manual driving stays under the player's control. Dismissed
+cards do not automatically reappear on later laps, but E can reopen a nearby card.
+The PDF and plain-text résumé retain the complete source details and project links.
+
+## Connect pad
+
+Drive off the outside of the start/finish bend onto the red CONNECT pad (x 5, z 27).
+The physical button depresses under the grounded car and reveals 3D email,
+LinkedIn and GitHub links. It rearms after driving off; Escape, Back to the track,
+or driving away closes the links. No message is sent automatically.
+
+The scene uses warm sunset lighting, a peach sky and charcoal/burnt-orange racing trim.

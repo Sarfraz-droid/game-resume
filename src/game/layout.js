@@ -1,14 +1,13 @@
 import { ZONES } from './zones.js'
 
 // ---- world dimensions ---------------------------------------------------
-// A walled garden: bright open lawn, one wide loop path, radial footpaths to
-// every zone, planting beds hugging the picket fence, all greenery off the
-// drivable surface so the car is never boxed in.
-export const ISLAND_R = 62 // ground radius
-export const DRIVE_R = 56 // how far from centre the car may roam
-export const FENCE_R = 60 // picket fence ring
-export const LOOP_RX = 40 // loop path — x semi-axis (centreline)
-export const LOOP_RZ = 31 // loop path — z semi-axis (centreline)
+// The course itself now comes from map/low_poly_race_track.glb. These values
+// only define driving limits, the spawn point, and checkpoint placement.
+export const ISLAND_R = 74
+export const DRIVE_R = 68
+export const FENCE_R = 70
+export const LOOP_RX = 43
+export const LOOP_RZ = 34
 export const LOOP_R_AVG = (LOOP_RX + LOOP_RZ) / 2
 export const ROAD_HALF = 4.6 // half width of the drivable loop path
 export const PATH_HALF = 2.1 // half width of a footpath
@@ -28,15 +27,17 @@ function mulberry32(a) {
 const rnd = mulberry32(20260906)
 export const rand = rnd
 
-// ---- zone world positions ------------------------------------------
-// Structures sit just OUTSIDE the loop centreline so the path lane itself
-// stays clear — you drive past a zone, you don't drive into it.
-const ZONE_OFFSET = ROAD_HALF + 1.4
+// Resume pointers sit at the major bends and the start/finish area. Keeping
+// them track-side lets the driver discover the story in race order.
+const CHECKPOINTS = [
+  [-4.4, 17, 0.15, 17], [15, -25, 9.25, -27], [17, -10, 25, -10],
+  [-20, 18, -23.2, 11.5], [-20, 7, -23.2, 2.4], [-14, 23, -8.95, 23], [-4.4, 25, 0.15, 25],
+]
 export const zoneLayout = ZONES.map((z, i) => {
-  const a = -Math.PI / 2 + (i / ZONES.length) * Math.PI * 2
-  const rx = LOOP_RX + ZONE_OFFSET
-  const rz = LOOP_RZ + ZONE_OFFSET
-  return { ...z, angle: a, pos: [Math.cos(a) * rx, 0, Math.sin(a) * rz] }
+  const [x, zPos, roadX, roadZ] = CHECKPOINTS[i]
+  const distance = Math.hypot(x - roadX, zPos - roadZ)
+  const offset = Math.min(distance, 3.8) / distance
+  return { ...z, number: i + 1, pos: [roadX + (x - roadX) * offset, 1, roadZ + (zPos - roadZ) * offset], road: [roadX, roadZ] }
 })
 
 // ---- footpaths: plaza edge → each zone ------------------------------
@@ -190,13 +191,8 @@ export const sheep = [
 // scenic props that only appear when their model file is present
 export const treehouse = { x: FENCE_R * 0.7, z: -FENCE_R * 0.5, rot: -0.55 }
 
-export const obstacles = [
-  { x: 0, z: 0, r: 3.6 }, // central fountain
-  ...zoneLayout.map((z) => ({ x: z.pos[0], z: z.pos[2], r: 1.7 })),
-  ...trees.map((t) => ({ x: t.x, z: t.z, r: 0.55 * t.s })),
-  ...rocks.map((t) => ({ x: t.x, z: t.z, r: 0.6 * t.s })),
-]
+export const obstacles = zoneLayout.map((z) => ({ x: z.pos[0], z: z.pos[2], r: 1.7 }))
 
-// spawn on the south straight of the loop path, facing east along it
-export const CAR_SPAWN = { x: 0, z: LOOP_RZ, heading: Math.PI / 2 }
-export const carState = { ...CAR_SPAWN, speed: 0, steer: 0, nearDist: 999 }
+// Start on the imported circuit’s start/finish straight, facing north.
+export const CAR_SPAWN = { x: 0.15, z: 18, heading: Math.PI, y: 1.1 }
+export const carState = { ...CAR_SPAWN, speed: 0, steer: 0, drifting: false, slip: 0, grounded: true, nearDist: 999 }
